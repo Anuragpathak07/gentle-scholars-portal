@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Student } from '@/components/dashboard/StudentCard';
 import { toast } from 'sonner';
+import { useStudentData, StudentDetail } from '@/hooks/useStudentData';
 
 const studentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -35,12 +35,14 @@ const studentSchema = z.object({
   disabilityPercentage: z.coerce.number().min(0).max(100),
   medicalHistory: z.string().optional(),
   referredHospital: z.string().optional(),
+  emergencyContact: z.string().optional(),
+  admissionDate: z.string().optional(),
 });
 
 type StudentFormData = z.infer<typeof studentSchema>;
 
 interface StudentFormProps {
-  initialData?: Partial<StudentFormData>;
+  initialData?: Partial<StudentDetail>;
   isEditing?: boolean;
 }
 
@@ -49,7 +51,9 @@ const StudentForm: React.FC<StudentFormProps> = ({
   isEditing = false,
 }) => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addStudent, updateStudent } = useStudentData();
 
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
@@ -63,6 +67,8 @@ const StudentForm: React.FC<StudentFormProps> = ({
       disabilityPercentage: initialData.disabilityPercentage || undefined,
       medicalHistory: initialData.medicalHistory || '',
       referredHospital: initialData.referredHospital || '',
+      emergencyContact: initialData.emergencyContact || '',
+      admissionDate: initialData.admissionDate || '',
     },
   });
 
@@ -70,15 +76,19 @@ const StudentForm: React.FC<StudentFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait a bit to simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // In a real app, this would send data to your backend
-      console.log('Student data:', data);
+      if (isEditing && id) {
+        // Update existing student
+        updateStudent(id, data);
+        toast.success('Student updated successfully!');
+      } else {
+        // Add new student
+        addStudent(data);
+        toast.success('Student added successfully!');
+      }
       
-      toast.success(
-        isEditing ? 'Student updated successfully!' : 'Student added successfully!'
-      );
       navigate('/dashboard');
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -213,6 +223,34 @@ const StudentForm: React.FC<StudentFormProps> = ({
                 <FormLabel>Referred Hospital</FormLabel>
                 <FormControl>
                   <Input placeholder="Hospital name (if applicable)" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="emergencyContact"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Emergency Contact</FormLabel>
+                <FormControl>
+                  <Input placeholder="Name and phone number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="admissionDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Admission Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

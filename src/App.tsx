@@ -12,6 +12,7 @@ import Navbar from "@/components/layout/Navbar";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AddStudent from "./pages/AddStudent";
+import EditStudent from "./pages/EditStudent";
 import StudentDetails from "./pages/StudentDetails";
 import NotFound from "./pages/NotFound";
 
@@ -45,6 +46,14 @@ const AppWithRoutes = () => {
             element={
               <ProtectedRoute>
                 <AddStudent />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/students/edit/:id" 
+            element={
+              <ProtectedRoute>
+                <EditStudent />
               </ProtectedRoute>
             } 
           />

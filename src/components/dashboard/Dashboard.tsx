@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { PlusCircle, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import StudentCard, { Student } from './StudentCard';
+import StudentCard from './StudentCard';
 import { 
   Select,
   SelectContent,
@@ -12,65 +12,15 @@ import {
   SelectTrigger,
   SelectValue 
 } from '@/components/ui/select';
-
-// Mock data for demonstration
-const MOCK_STUDENTS: Student[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    age: 12,
-    grade: '6th Grade',
-    disabilityType: 'Autism Spectrum Disorder',
-    disabilityLevel: 'Moderate',
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    age: 10,
-    grade: '4th Grade',
-    disabilityType: 'Down Syndrome',
-    disabilityLevel: 'Mild',
-  },
-  {
-    id: '3',
-    name: 'Michael Johnson',
-    age: 14,
-    grade: '8th Grade',
-    disabilityType: 'ADHD',
-    disabilityLevel: 'Mild',
-  },
-  {
-    id: '4',
-    name: 'Emily Williams',
-    age: 11,
-    grade: '5th Grade',
-    disabilityType: 'Intellectual Disability',
-    disabilityLevel: 'Severe',
-  },
-  {
-    id: '5',
-    name: 'David Brown',
-    age: 13,
-    grade: '7th Grade',
-    disabilityType: 'Learning Disability',
-    disabilityLevel: 'Moderate',
-  },
-  {
-    id: '6',
-    name: 'Sarah Davis',
-    age: 9,
-    grade: '3rd Grade',
-    disabilityType: 'Cerebral Palsy',
-    disabilityLevel: 'Moderate',
-  }
-];
+import { useStudentData } from '@/hooks/useStudentData';
 
 const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
+  const { students } = useStudentData();
   
   // Filter students based on search term and level filter
-  const filteredStudents = MOCK_STUDENTS.filter(student => {
+  const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = levelFilter === 'all' ? true : student.disabilityLevel === levelFilter;
     return matchesSearch && matchesLevel;

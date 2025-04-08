@@ -6,59 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Student } from '@/components/dashboard/StudentCard';
-
-// Extended mock data for a full student profile
-interface StudentDetail extends Student {
-  address: string;
-  disabilityPercentage: number;
-  medicalHistory: string;
-  referredHospital: string;
-  emergencyContact: string;
-  admissionDate: string;
-  documents: Array<{
-    id: string;
-    name: string;
-    type: string;
-    date: string;
-  }>;
-}
-
-// Mock data for student detail
-const MOCK_STUDENT: StudentDetail = {
-  id: '1',
-  name: 'John Doe',
-  age: 12,
-  grade: '6th Grade',
-  address: '123 Main St, Anytown, CA 12345',
-  disabilityType: 'Autism Spectrum Disorder',
-  disabilityLevel: 'Moderate',
-  disabilityPercentage: 45,
-  medicalHistory: 'Diagnosed with ASD at age 4. Regular therapy sessions twice a week. No major medical complications.',
-  referredHospital: 'City Children\'s Hospital',
-  emergencyContact: 'Mary Doe (Mother) - (555) 123-4567',
-  admissionDate: '2022-09-01',
-  documents: [
-    {
-      id: 'd1',
-      name: 'Medical Assessment Report',
-      type: 'PDF',
-      date: '2022-05-15'
-    },
-    {
-      id: 'd2',
-      name: 'IEP Documentation',
-      type: 'PDF',
-      date: '2022-08-20'
-    },
-    {
-      id: 'd3',
-      name: 'Progress Report - Q1',
-      type: 'PDF',
-      date: '2022-11-10'
-    }
-  ]
-};
+import { useStudentData, StudentDetail } from '@/hooks/useStudentData';
 
 interface StudentProfileProps {
   studentId: string;
@@ -66,9 +14,18 @@ interface StudentProfileProps {
 
 const StudentProfile: React.FC<StudentProfileProps> = ({ studentId }) => {
   const navigate = useNavigate();
-  // In a real app, you'd fetch student data based on the ID
-  // For now, we'll use our mock data
-  const student = MOCK_STUDENT;
+  const { getStudentById } = useStudentData();
+  
+  // Fetch student data based on ID
+  const student = getStudentById(studentId);
+  
+  if (!student) {
+    return (
+      <div className="p-4 bg-destructive/20 rounded-md text-destructive">
+        Student not found. The ID may be invalid.
+      </div>
+    );
+  }
   
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -82,6 +39,9 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ studentId }) => {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Ensure documents exists or provide a default empty array
+  const documents = student.documents || [];
 
   return (
     <div className="space-y-6">
@@ -113,7 +73,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ studentId }) => {
               </CardDescription>
             </div>
             <Badge variant="outline" className={getLevelColor(student.disabilityLevel)}>
-              {student.disabilityLevel} - {student.disabilityPercentage}%
+              {student.disabilityLevel} {student.disabilityPercentage && `- ${student.disabilityPercentage}%`}
             </Badge>
           </div>
         </CardHeader>
@@ -129,7 +89,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ studentId }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Address</p>
-                  <p className="text-sm text-muted-foreground">{student.address}</p>
+                  <p className="text-sm text-muted-foreground">{student.address || 'Not provided'}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Disability Type</p>
@@ -137,14 +97,14 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ studentId }) => {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Emergency Contact</p>
-                  <p className="text-sm text-muted-foreground">{student.emergencyContact}</p>
+                  <p className="text-sm text-muted-foreground">{student.emergencyContact || 'Not provided'}</p>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <p className="text-sm font-medium">Admission Date</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">{student.admissionDate}</p>
+                  <p className="text-sm text-muted-foreground">{student.admissionDate || 'Not provided'}</p>
                 </div>
               </div>
             </TabsContent>
@@ -156,12 +116,12 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ studentId }) => {
                     <Hospital className="h-4 w-4 text-muted-foreground" />
                     <p className="text-sm font-medium">Referred Hospital</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">{student.referredHospital}</p>
+                  <p className="text-sm text-muted-foreground">{student.referredHospital || 'Not specified'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium mb-1">Medical History</p>
                   <div className="bg-secondary p-3 rounded-md">
-                    <p className="text-sm">{student.medicalHistory}</p>
+                    <p className="text-sm">{student.medicalHistory || 'No medical history provided'}</p>
                   </div>
                 </div>
               </div>
@@ -172,22 +132,28 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ studentId }) => {
                 <div className="text-sm text-muted-foreground">
                   These documents require proper authorization to download.
                 </div>
-                <div className="space-y-2">
-                  {student.documents.map(doc => (
-                    <div key={doc.id} className="flex items-center justify-between p-3 bg-secondary rounded-md">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">{doc.name}</p>
-                          <p className="text-xs text-muted-foreground">Uploaded on {doc.date}</p>
+                {documents.length > 0 ? (
+                  <div className="space-y-2">
+                    {documents.map(doc => (
+                      <div key={doc.id} className="flex items-center justify-between p-3 bg-secondary rounded-md">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">{doc.name}</p>
+                            <p className="text-xs text-muted-foreground">Uploaded on {doc.date}</p>
+                          </div>
                         </div>
+                        <Button variant="outline" size="sm">
+                          View
+                        </Button>
                       </div>
-                      <Button variant="outline" size="sm">
-                        View
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p>No documents available</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
