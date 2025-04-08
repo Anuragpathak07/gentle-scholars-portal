@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -81,6 +82,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
         updateStudent(id, data);
         toast.success('Student updated successfully!');
       } else {
+        // Ensure required fields are properly set for new student
         const newStudentData: Omit<StudentDetail, 'id'> = {
           name: data.name,
           age: data.age,
@@ -89,17 +91,21 @@ const StudentForm: React.FC<StudentFormProps> = ({
           disabilityLevel: data.disabilityLevel,
           address: data.address,
           disabilityPercentage: data.disabilityPercentage,
-          medicalHistory: data.medicalHistory,
-          referredHospital: data.referredHospital,
-          emergencyContact: data.emergencyContact,
-          admissionDate: data.admissionDate,
+          medicalHistory: data.medicalHistory || '',
+          referredHospital: data.referredHospital || '',
+          emergencyContact: data.emergencyContact || '',
+          admissionDate: data.admissionDate || '',
         };
         
+        console.log('Form data before submission:', newStudentData);
         addStudent(newStudentData);
         toast.success('Student added successfully!');
       }
       
-      navigate('/dashboard');
+      // Wait briefly before navigating to ensure state updates
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 100);
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('An error occurred. Please try again.');

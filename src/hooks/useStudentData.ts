@@ -77,7 +77,13 @@ export function useStudentData() {
   useEffect(() => {
     const storedStudents = localStorage.getItem('students');
     if (storedStudents) {
-      setStudents(JSON.parse(storedStudents));
+      try {
+        setStudents(JSON.parse(storedStudents));
+      } catch (error) {
+        console.error('Error parsing stored students:', error);
+        setStudents(MOCK_STUDENTS);
+        localStorage.setItem('students', JSON.stringify(MOCK_STUDENTS));
+      }
     } else {
       // Initialize with mock data if nothing in localStorage
       setStudents(MOCK_STUDENTS);
@@ -99,27 +105,44 @@ export function useStudentData() {
 
   // Add a new student
   const addStudent = (studentData: Omit<StudentDetail, 'id'>) => {
+    console.log('Adding student:', studentData);
     const newStudent = {
       ...studentData,
       id: Date.now().toString(), // Generate a unique ID
     };
-    const updatedStudents = [...students, newStudent];
-    setStudents(updatedStudents);
+    
+    setStudents(prevStudents => {
+      const updatedStudents = [...prevStudents, newStudent];
+      // Explicitly save to localStorage
+      localStorage.setItem('students', JSON.stringify(updatedStudents));
+      return updatedStudents;
+    });
+    
     return newStudent;
   };
 
   // Update an existing student
   const updateStudent = (id: string, studentData: Partial<StudentDetail>) => {
-    const updatedStudents = students.map(student => 
-      student.id === id ? { ...student, ...studentData } : student
-    );
-    setStudents(updatedStudents);
+    console.log('Updating student:', id, studentData);
+    setStudents(prevStudents => {
+      const updatedStudents = prevStudents.map(student => 
+        student.id === id ? { ...student, ...studentData } : student
+      );
+      // Explicitly save to localStorage
+      localStorage.setItem('students', JSON.stringify(updatedStudents));
+      return updatedStudents;
+    });
   };
 
   // Delete a student
   const deleteStudent = (id: string) => {
-    const updatedStudents = students.filter(student => student.id !== id);
-    setStudents(updatedStudents);
+    console.log('Deleting student:', id);
+    setStudents(prevStudents => {
+      const updatedStudents = prevStudents.filter(student => student.id !== id);
+      // Explicitly save to localStorage
+      localStorage.setItem('students', JSON.stringify(updatedStudents));
+      return updatedStudents;
+    });
   };
 
   return {
