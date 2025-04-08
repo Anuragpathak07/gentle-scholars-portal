@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Student } from '@/components/dashboard/StudentCard';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 const studentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
