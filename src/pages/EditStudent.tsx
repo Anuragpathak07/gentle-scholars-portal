@@ -1,21 +1,26 @@
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import StudentForm from '@/components/forms/StudentForm';
-import { Student } from '@/components/dashboard/StudentCard';
 import { useStudentData } from '@/hooks/useStudentData';
 
 const EditStudent: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { getStudentById } = useStudentData();
   
   const student = getStudentById(id || '');
   
   if (!student) {
+    // If student not found, show error and redirect after a delay
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 3000);
+    
     return (
       <div className="container mx-auto p-4 max-w-4xl fade-in">
         <div className="bg-destructive/20 p-4 rounded-md text-destructive">
-          Student not found. The ID may be invalid.
+          Student not found. The ID may be invalid. Redirecting to dashboard...
         </div>
       </div>
     );

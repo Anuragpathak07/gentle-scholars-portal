@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -29,9 +28,9 @@ const studentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   age: z.coerce.number().int().min(5).max(22),
   grade: z.string().min(1, 'Grade is required'),
-  address: z.string().min(5, 'Address must be at least 5 characters'),
   disabilityType: z.string().min(1, 'Disability type is required'),
   disabilityLevel: z.enum(['Mild', 'Moderate', 'Severe']),
+  address: z.string().min(5, 'Address must be at least 5 characters'),
   disabilityPercentage: z.coerce.number().min(0).max(100),
   medicalHistory: z.string().optional(),
   referredHospital: z.string().optional(),
@@ -76,16 +75,27 @@ const StudentForm: React.FC<StudentFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      // Wait a bit to simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
       
       if (isEditing && id) {
-        // Update existing student
         updateStudent(id, data);
         toast.success('Student updated successfully!');
       } else {
-        // Add new student
-        addStudent(data);
+        const newStudentData: Omit<StudentDetail, 'id'> = {
+          name: data.name,
+          age: data.age,
+          grade: data.grade,
+          disabilityType: data.disabilityType,
+          disabilityLevel: data.disabilityLevel,
+          address: data.address,
+          disabilityPercentage: data.disabilityPercentage,
+          medicalHistory: data.medicalHistory,
+          referredHospital: data.referredHospital,
+          emergencyContact: data.emergencyContact,
+          admissionDate: data.admissionDate,
+        };
+        
+        addStudent(newStudentData);
         toast.success('Student added successfully!');
       }
       
