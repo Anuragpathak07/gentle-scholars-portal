@@ -67,12 +67,12 @@ const MOCK_STUDENTS: Student[] = [
 
 const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [levelFilter, setLevelFilter] = useState<string>('');
+  const [levelFilter, setLevelFilter] = useState<string>('all');
   
   // Filter students based on search term and level filter
   const filteredStudents = MOCK_STUDENTS.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = levelFilter ? student.disabilityLevel === levelFilter : true;
+    const matchesLevel = levelFilter === 'all' ? true : student.disabilityLevel === levelFilter;
     return matchesSearch && matchesLevel;
   });
 
@@ -106,7 +106,7 @@ const Dashboard: React.FC = () => {
             </div>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Levels</SelectItem>
+            <SelectItem value="all">All Levels</SelectItem>
             <SelectItem value="Mild">Mild</SelectItem>
             <SelectItem value="Moderate">Moderate</SelectItem>
             <SelectItem value="Severe">Severe</SelectItem>
