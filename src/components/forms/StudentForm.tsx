@@ -26,16 +26,18 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useStudentData, StudentDetail } from '@/hooks/useStudentData';
+import { useTeacherData } from '@/hooks/useTeacherData';
 import FileUpload from './FileUpload';
-import { AlertCircle } from 'lucide-react';
-
-// Sample teacher data
-const TEACHERS = [
-  { id: '1', name: 'Ms. Johnson' },
-  { id: '2', name: 'Mr. Smith' },
-  { id: '3', name: 'Mrs. Williams' },
-  { id: '4', name: 'Dr. Garcia' },
-];
+import { AlertCircle, Plus } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const studentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -70,7 +72,7 @@ interface StudentFormProps {
   initialData?: Partial<StudentDetail>;
   isEditing?: boolean;
   isAdmin?: boolean;
-  onSaved?: () => void; // Added onSaved callback prop
+  onSaved?: () => void; // Callback when form is saved
 }
 
 const StudentForm: React.FC<StudentFormProps> = ({
@@ -83,10 +85,13 @@ const StudentForm: React.FC<StudentFormProps> = ({
   const { id } = useParams<{ id: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addStudent, updateStudent } = useStudentData();
-  const [certificates, setCertificates] = useState<Array<{id: string, name: string, type: string, date: string}>>(
+  const { teachers, addTeacher } = useTeacherData();
+  const [newTeacherName, setNewTeacherName] = useState('');
+  const [isAddingTeacher, setIsAddingTeacher] = useState(false);
+  const [certificates, setCertificates] = useState<Array<{id: string, name: string, type: string, date: string, data?: string}>>(
     initialData.certificates || []
   );
-  const [disabilityIdCard, setDisabilityIdCard] = useState<{id: string, name: string, type: string, date: string} | undefined>(
+  const [disabilityIdCard, setDisabilityIdCard] = useState<{id: string, name: string, type: string, date: string, data?: string} | undefined>(
     initialData.disabilityIdCard
   );
 
@@ -101,7 +106,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
       residenceType: initialData.residenceType || 'Permanent',
       previousSchool: initialData.previousSchool || '',
       parentGuardianStatus: initialData.parentGuardianStatus || 'Both Parents',
-      teacherAssigned: initialData.teacherAssigned || TEACHERS[0].id,
+      teacherAssigned: initialData.teacherAssigned || (teachers[0]?.id || ''),
       disabilityType: initialData.disabilityType || '',
       disabilityLevel: initialData.disabilityLevel || 'Mild',
       disabilityPercentage: initialData.disabilityPercentage || undefined,
@@ -123,12 +128,20 @@ const StudentForm: React.FC<StudentFormProps> = ({
   // Watch the hasDisabilityIdCard field to conditionally show the upload
   const hasDisabilityIdCard = form.watch('hasDisabilityIdCard');
 
-  const onSubmit = async (data: StudentFormData) => {
+  const handleAddTeacher = () => {
+    if (newTeacherName.trim()) {
+      const teacher = addTeacher(newTeacherName.trim());
+      form.setValue('teacherAssigned', teacher.id);
+      setNewTeacherName('');
+      setIsAddingTeacher(false);
+      toast.success(`Teacher "${teacher.name}" has been added`);
+    }
+  };
+
+  const onSubmit = (data: StudentFormData) => {
     setIsSubmitting(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
       // Prepare student data with file uploads and ensure all required fields are present
       const studentData: Omit<StudentDetail, 'id'> = {
         name: data.name,  // Explicitly including required fields
@@ -165,7 +178,6 @@ const StudentForm: React.FC<StudentFormProps> = ({
         updateStudent(id, studentData);
         toast.success('Student updated successfully!');
       } else {
-        console.log('Form data before submission:', studentData);
         addStudent(studentData);
         toast.success('Student added successfully!');
       }
@@ -174,10 +186,8 @@ const StudentForm: React.FC<StudentFormProps> = ({
       if (onSaved) {
         onSaved();
       } else {
-        // Wait briefly before navigating to ensure state updates
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 100);
+        // Navigate to dashboard
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -456,20 +466,49 @@ const StudentForm: React.FC<StudentFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Teacher Assigned</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select teacher" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {TEACHERS.map(teacher => (
-                        <SelectItem key={teacher.id} value={teacher.id}>
-                          {teacher.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Select teacher" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {teachers.map(teacher => (
+                          <SelectItem key={teacher.id} value={teacher.id}>
+                            {teacher.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Dialog open={isAddingTeacher} onOpenChange={setIsAddingTeacher}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="icon" type="button">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Add New Teacher</DialogTitle>
+                          <DialogDescription>
+                            Enter the name of the new teacher to add them to the system.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                          <Input
+                            placeholder="Teacher's name"
+                            value={newTeacherName}
+                            onChange={(e) => setNewTeacherName(e.target.value)}
+                          />
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setIsAddingTeacher(false)}>Cancel</Button>
+                          <Button onClick={handleAddTeacher} disabled={!newTeacherName.trim()}>Add Teacher</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

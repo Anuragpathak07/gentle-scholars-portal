@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from 'sonner';
 import { useStudentData, StudentDetail } from '@/hooks/useStudentData';
+import { useTeacherData } from '@/hooks/useTeacherData';
+import FileViewer from '@/components/files/FileViewer';
 
 interface StudentProfileProps {
   studentId: string;
@@ -31,7 +33,15 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
 }) => {
   const navigate = useNavigate();
   const { getStudentById, deleteStudent } = useStudentData();
+  const { teachers } = useTeacherData();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [viewingFile, setViewingFile] = useState<{
+    id: string;
+    name: string;
+    type: string;
+    date: string;
+    data?: string;
+  } | null>(null);
   
   // Fetch student data based on ID
   const student = getStudentById(studentId);
@@ -46,14 +56,10 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
 
   const handleDeleteStudent = () => {
     setIsDeleting(true);
-    
-    // Simulate backend delay
-    setTimeout(() => {
-      deleteStudent(studentId);
-      toast.success('Student deleted successfully');
-      navigate('/dashboard');
-      setIsDeleting(false);
-    }, 500);
+    deleteStudent(studentId);
+    toast.success('Student deleted successfully');
+    navigate('/dashboard');
+    setIsDeleting(false);
   };
   
   const getLevelColor = (level: string) => {
@@ -72,6 +78,13 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
   // Ensure documents exists or provide a default empty array
   const documents = student.documents || [];
   const certificates = student.certificates || [];
+
+  // Find teacher name based on ID
+  const getTeacherName = (teacherId: string | undefined) => {
+    if (!teacherId) return 'Not assigned';
+    const teacher = teachers.find(t => t.id === teacherId);
+    return teacher ? teacher.name : 'Unknown teacher';
+  };
 
   return (
     <div className="space-y-6">
@@ -181,7 +194,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                     <p className="text-sm font-medium">School Information</p>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Teacher: {TEACHERS.find(t => t.id === student.teacherAssigned)?.name || 'Not assigned'}
+                    Teacher: {getTeacherName(student.teacherAssigned)}
                   </p>
                   {student.previousSchool && (
                     <p className="text-xs text-muted-foreground">
@@ -245,7 +258,11 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                           <p className="text-xs text-muted-foreground">Uploaded on {student.disabilityIdCard.date}</p>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setViewingFile(student.disabilityIdCard)}
+                      >
                         View
                       </Button>
                     </div>
@@ -265,7 +282,11 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                               <p className="text-xs text-muted-foreground">Uploaded on {doc.date}</p>
                             </div>
                           </div>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setViewingFile(doc)}
+                          >
                             View
                           </Button>
                         </div>
@@ -337,16 +358,16 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
           </Tabs>
         </CardContent>
       </Card>
+      
+      {viewingFile && (
+        <FileViewer 
+          file={viewingFile} 
+          isOpen={Boolean(viewingFile)} 
+          onClose={() => setViewingFile(null)} 
+        />
+      )}
     </div>
   );
 };
-
-// Sample teacher data for display purposes
-const TEACHERS = [
-  { id: '1', name: 'Ms. Johnson' },
-  { id: '2', name: 'Mr. Smith' },
-  { id: '3', name: 'Mrs. Williams' },
-  { id: '4', name: 'Dr. Garcia' },
-];
 
 export default StudentProfile;

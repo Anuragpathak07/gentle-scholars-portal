@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Student } from '@/components/dashboard/StudentCard';
 import { useAuth } from '@/context/AuthContext';
+import { getStorageItem, setStorageItem } from '@/utils/storage';
 
 // Mock data for initial load if no data in localStorage
 const MOCK_STUDENTS: Student[] = [
@@ -107,30 +108,15 @@ export function useStudentData() {
   useEffect(() => {
     if (!user) return;
     
-    const storageKey = `students_${user.id}`;
-    const storedStudents = localStorage.getItem(storageKey);
-    
-    if (storedStudents) {
-      try {
-        setStudents(JSON.parse(storedStudents));
-      } catch (error) {
-        console.error('Error parsing stored students:', error);
-        setStudents(MOCK_STUDENTS);
-        localStorage.setItem(storageKey, JSON.stringify(MOCK_STUDENTS));
-      }
-    } else {
-      // Initialize with mock data if nothing in localStorage
-      setStudents(MOCK_STUDENTS);
-      localStorage.setItem(storageKey, JSON.stringify(MOCK_STUDENTS));
-    }
+    const storedStudents = getStorageItem<StudentDetail[]>('students', user.id, MOCK_STUDENTS);
+    setStudents(storedStudents);
   }, [user]);
 
   // Save students to localStorage whenever they change
   useEffect(() => {
     if (!user || students.length === 0) return;
     
-    const storageKey = `students_${user.id}`;
-    localStorage.setItem(storageKey, JSON.stringify(students));
+    setStorageItem('students', user.id, students);
   }, [students, user]);
 
   // Get a student by ID
@@ -150,9 +136,7 @@ export function useStudentData() {
     
     setStudents(prevStudents => {
       const updatedStudents = [...prevStudents, newStudent];
-      // Explicitly save to localStorage
-      const storageKey = `students_${user.id}`;
-      localStorage.setItem(storageKey, JSON.stringify(updatedStudents));
+      setStorageItem('students', user.id, updatedStudents);
       return updatedStudents;
     });
     
@@ -168,9 +152,7 @@ export function useStudentData() {
       const updatedStudents = prevStudents.map(student => 
         student.id === id ? { ...student, ...studentData } : student
       );
-      // Explicitly save to localStorage
-      const storageKey = `students_${user.id}`;
-      localStorage.setItem(storageKey, JSON.stringify(updatedStudents));
+      setStorageItem('students', user.id, updatedStudents);
       return updatedStudents;
     });
   };
@@ -182,9 +164,7 @@ export function useStudentData() {
     console.log('Deleting student:', id);
     setStudents(prevStudents => {
       const updatedStudents = prevStudents.filter(student => student.id !== id);
-      // Explicitly save to localStorage
-      const storageKey = `students_${user.id}`;
-      localStorage.setItem(storageKey, JSON.stringify(updatedStudents));
+      setStorageItem('students', user.id, updatedStudents);
       return updatedStudents;
     });
   };

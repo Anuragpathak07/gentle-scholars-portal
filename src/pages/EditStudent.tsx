@@ -34,7 +34,7 @@ const EditStudent: React.FC = () => {
   }
 
   const handleStudentSaved = () => {
-    // After saving, navigate to the student details page
+    // Navigate to the student details page immediately
     navigate(`/students/${id}`);
   };
 
