@@ -95,6 +95,8 @@ const StudentForm: React.FC<StudentFormProps> = ({
     initialData.disabilityIdCard
   );
 
+ 
+
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
@@ -138,26 +140,26 @@ const StudentForm: React.FC<StudentFormProps> = ({
     }
   };
 
-  const onSubmit = (data: StudentFormData) => {
+  const onSubmit = async (data: StudentFormData) => {
     setIsSubmitting(true);
     
     try {
-      // Prepare student data with file uploads and ensure all required fields are present
+      // Prepare student data with file uploads - ensure all required fields are present
       const studentData: Omit<StudentDetail, 'id'> = {
-        name: data.name,  // Explicitly including required fields
+        name: data.name,
         age: data.age,
         grade: data.grade,
+        gender: data.gender,
         disabilityType: data.disabilityType,
         disabilityLevel: data.disabilityLevel,
-        // Add other fields from the form data
-        gender: data.gender,
         address: data.address,
         residenceType: data.residenceType,
-        previousSchool: data.previousSchool,
         parentGuardianStatus: data.parentGuardianStatus,
         teacherAssigned: data.teacherAssigned,
         disabilityPercentage: data.disabilityPercentage,
         hasDisabilityIdCard: data.hasDisabilityIdCard,
+        // Optional fields
+        previousSchool: data.previousSchool || '',
         medicalHistory: data.medicalHistory || '',
         referredHospital: data.referredHospital || '',
         emergencyContact: data.emergencyContact || '',
@@ -169,26 +171,21 @@ const StudentForm: React.FC<StudentFormProps> = ({
         isFamilySupportive: data.isFamilySupportive,
         hasPTSD: data.hasPTSD,
         hasSelfHarmHistory: data.hasSelfHarmHistory,
-        // Include file uploads
+        // File uploads
         certificates,
-        disabilityIdCard: hasDisabilityIdCard ? disabilityIdCard : undefined,
+        disabilityIdCard: data.hasDisabilityIdCard ? disabilityIdCard : undefined,
       };
       
       if (isEditing && id) {
-        updateStudent(id, studentData);
+        await updateStudent(id, studentData);
         toast.success('Student updated successfully!');
       } else {
-        addStudent(studentData);
+        await addStudent(studentData);
         toast.success('Student added successfully!');
       }
       
-      // Call onSaved callback if provided
-      if (onSaved) {
-        onSaved();
-      } else {
-        // Navigate to dashboard
-        navigate('/dashboard');
-      }
+      onSaved ? onSaved() : navigate('/dashboard');
+      
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('An error occurred. Please try again.');
