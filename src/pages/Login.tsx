@@ -1,12 +1,15 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '@/components/auth/LoginForm';
+import SignupForm from '@/components/auth/SignupForm';
 import { useAuth } from '@/context/AuthContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Login: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<string>('login');
 
   // Redirect if already logged in
   useEffect(() => {
@@ -24,7 +27,18 @@ const Login: React.FC = () => {
         </p>
       </div>
       <div className="w-full max-w-md fade-in">
-        <LoginForm />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Login</TabsTrigger>
+            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          </TabsList>
+          <TabsContent value="login">
+            <LoginForm />
+          </TabsContent>
+          <TabsContent value="signup">
+            <SignupForm />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
