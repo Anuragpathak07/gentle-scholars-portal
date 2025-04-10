@@ -14,15 +14,20 @@ const EditStudent: React.FC = () => {
   const student = getStudentById(id || '');
   
   if (!student) {
-    // If student not found, show error and redirect after a delay
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 3000);
-    
     return (
       <div className="container mx-auto p-4 max-w-4xl fade-in">
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/dashboard')}
+            className="gap-1"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </div>
         <div className="bg-destructive/20 p-4 rounded-md text-destructive">
-          Student not found. The ID may be invalid. Redirecting to dashboard...
+          Student not found. The ID may be invalid.
         </div>
       </div>
     );

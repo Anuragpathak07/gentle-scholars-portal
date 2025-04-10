@@ -74,6 +74,7 @@ export interface StudentDetail extends Student {
     name: string;
     type: string;
     date: string;
+    data?: string; // Base64 encoded file data
   }>;
   hasDisabilityIdCard?: boolean;
   disabilityIdCard?: {
@@ -81,6 +82,7 @@ export interface StudentDetail extends Student {
     name: string;
     type: string;
     date: string;
+    data?: string; // Base64 encoded file data
   };
   // Sensitive info (admin only)
   wasAbused?: boolean;
@@ -93,6 +95,7 @@ export interface StudentDetail extends Student {
     name: string;
     type: string;
     date: string;
+    data?: string; // Base64 encoded file data
   }>;
 }
 

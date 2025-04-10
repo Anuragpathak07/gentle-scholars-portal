@@ -1,13 +1,21 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Upload, File } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface FileMetadata {
+  id: string;
+  name: string;
+  type: string;
+  date: string;
+  data?: string; // Base64 encoded file data
+}
+
 interface FileUploadProps {
   multiple?: boolean;
-  onChange: (files: Array<{id: string, name: string, type: string, date: string}>) => void;
-  value?: Array<{id: string, name: string, type: string, date: string}>;
+  onChange: (files: FileMetadata[]) => void;
+  value?: FileMetadata[];
   maxFiles?: number;
   acceptedFileTypes?: string;
 }
@@ -19,33 +27,70 @@ const FileUpload: React.FC<FileUploadProps> = ({
   maxFiles = 5,
   acceptedFileTypes = ".pdf,.jpg,.jpeg,.png"
 }) => {
-  const [files, setFiles] = useState<Array<{id: string, name: string, type: string, date: string}>>(value);
+  const [files, setFiles] = useState<FileMetadata[]>(value);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     
-    const newFiles = Array.from(e.target.files).map(file => ({
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      name: file.name,
-      type: file.type,
-      date: new Date().toISOString().split('T')[0]
-    }));
-
-    if (!multiple) {
-      setFiles(newFiles);
-      onChange(newFiles);
-      return;
+    try {
+      const fileArray = Array.from(e.target.files);
+      
+      if (!multiple && fileArray.length > 0) {
+        // For single file upload, just process the first file
+        const file = fileArray[0];
+        const base64Data = await fileToBase64(file);
+        
+        const newFile = {
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          type: file.type,
+          date: new Date().toISOString().split('T')[0],
+          data: base64Data
+        };
+        
+        setFiles([newFile]);
+        onChange([newFile]);
+        return;
+      }
+      
+      if (files.length + fileArray.length > maxFiles) {
+        toast.error(`You can only upload up to ${maxFiles} files`);
+        return;
+      }
+      
+      // Process multiple files
+      const processedFiles = await Promise.all(
+        fileArray.map(async (file) => {
+          const base64Data = await fileToBase64(file);
+          return {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            name: file.name,
+            type: file.type,
+            date: new Date().toISOString().split('T')[0],
+            data: base64Data
+          };
+        })
+      );
+      
+      const updatedFiles = [...files, ...processedFiles];
+      setFiles(updatedFiles);
+      onChange(updatedFiles);
+      
+    } catch (error) {
+      console.error('Error processing files:', error);
+      toast.error('Error processing files. Please try again.');
     }
-
-    if (files.length + newFiles.length > maxFiles) {
-      toast.error(`You can only upload up to ${maxFiles} files`);
-      return;
-    }
-
-    const updatedFiles = [...files, ...newFiles];
-    setFiles(updatedFiles);
-    onChange(updatedFiles);
-  };
+  }, [files, maxFiles, multiple, onChange]);
 
   const removeFile = (id: string) => {
     const updatedFiles = files.filter(file => file.id !== id);
