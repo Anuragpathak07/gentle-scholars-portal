@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -127,9 +126,34 @@ const StudentForm: React.FC<StudentFormProps> = ({
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Prepare student data with file uploads
+      // Prepare student data with file uploads and ensure all required fields are present
       const studentData: Omit<StudentDetail, 'id'> = {
-        ...data,
+        name: data.name,  // Explicitly including required fields
+        age: data.age,
+        grade: data.grade,
+        disabilityType: data.disabilityType,
+        disabilityLevel: data.disabilityLevel,
+        // Add other fields from the form data
+        gender: data.gender,
+        address: data.address,
+        residenceType: data.residenceType,
+        previousSchool: data.previousSchool,
+        parentGuardianStatus: data.parentGuardianStatus,
+        teacherAssigned: data.teacherAssigned,
+        disabilityPercentage: data.disabilityPercentage,
+        hasDisabilityIdCard: data.hasDisabilityIdCard,
+        medicalHistory: data.medicalHistory || '',
+        referredHospital: data.referredHospital || '',
+        emergencyContact: data.emergencyContact || '',
+        admissionDate: data.admissionDate || '',
+        otherNotes: data.otherNotes || '',
+        // Sensitive info
+        wasAbused: data.wasAbused,
+        isSafeAtHome: data.isSafeAtHome,
+        isFamilySupportive: data.isFamilySupportive,
+        hasPTSD: data.hasPTSD,
+        hasSelfHarmHistory: data.hasSelfHarmHistory,
+        // Include file uploads
         certificates,
         disabilityIdCard: hasDisabilityIdCard ? disabilityIdCard : undefined,
       };
