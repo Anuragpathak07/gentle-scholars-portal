@@ -62,6 +62,31 @@ export interface StudentDetail extends Student {
   referredHospital?: string;
   emergencyContact?: string;
   admissionDate?: string;
+  gender?: 'Male' | 'Female' | 'Other';
+  residenceType?: 'Permanent' | 'Temporary';
+  previousSchool?: string;
+  parentGuardianStatus?: 'Both Parents' | 'Single Parent' | 'Guardian' | 'Orphan';
+  teacherAssigned?: string;
+  otherNotes?: string;
+  certificates?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    date: string;
+  }>;
+  hasDisabilityIdCard?: boolean;
+  disabilityIdCard?: {
+    id: string;
+    name: string;
+    type: string;
+    date: string;
+  };
+  // Sensitive info (admin only)
+  wasAbused?: boolean;
+  isSafeAtHome?: boolean;
+  isFamilySupportive?: boolean;
+  hasPTSD?: boolean;
+  hasSelfHarmHistory?: boolean;
   documents?: Array<{
     id: string;
     name: string;
