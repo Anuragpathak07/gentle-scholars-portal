@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -69,12 +70,14 @@ interface StudentFormProps {
   initialData?: Partial<StudentDetail>;
   isEditing?: boolean;
   isAdmin?: boolean;
+  onSaved?: () => void; // Added onSaved callback prop
 }
 
 const StudentForm: React.FC<StudentFormProps> = ({
   initialData = {},
   isEditing = false,
   isAdmin = true, // For demo purposes, assume admin role by default
+  onSaved,
 }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -167,10 +170,15 @@ const StudentForm: React.FC<StudentFormProps> = ({
         toast.success('Student added successfully!');
       }
       
-      // Wait briefly before navigating to ensure state updates
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 100);
+      // Call onSaved callback if provided
+      if (onSaved) {
+        onSaved();
+      } else {
+        // Wait briefly before navigating to ensure state updates
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 100);
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('An error occurred. Please try again.');
