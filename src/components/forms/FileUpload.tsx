@@ -18,6 +18,7 @@ interface FileUploadProps {
   value?: FileMetadata[];
   maxFiles?: number;
   acceptedFileTypes?: string;
+  label?: string;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({
@@ -25,7 +26,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
   onChange,
   value = [],
   maxFiles = 5,
-  acceptedFileTypes = ".pdf,.jpg,.jpeg,.png"
+  acceptedFileTypes = ".pdf,.jpg,.jpeg,.png",
+  label = "Choose File"
 }) => {
   const [files, setFiles] = useState<FileMetadata[]>(value);
 
@@ -103,18 +105,18 @@ const FileUpload: React.FC<FileUploadProps> = ({
       <div className="flex items-center gap-2">
         <input
           type="file"
-          id="file-upload"
+          id={`file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`}
           multiple={multiple}
           className="hidden"
           accept={acceptedFileTypes}
           onChange={handleFileChange}
         />
         <label
-          htmlFor="file-upload"
+          htmlFor={`file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`}
           className="cursor-pointer inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
         >
           <Upload className="mr-2 h-4 w-4" />
-          Choose {multiple ? 'Files' : 'File'}
+          {label} {multiple ? 'Files' : ''}
         </label>
         <p className="text-sm text-muted-foreground">
           {multiple ? `${files.length} of ${maxFiles} files uploaded` : files.length ? '1 file selected' : 'No file selected'}

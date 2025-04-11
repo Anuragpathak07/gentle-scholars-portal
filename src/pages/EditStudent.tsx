@@ -1,20 +1,31 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import StudentForm from '@/components/forms/StudentForm';
 import { useStudentData } from '@/hooks/useStudentData';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 const EditStudent: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getStudentById } = useStudentData();
+  const { getStudentById, loadStudents } = useStudentData();
   const { user } = useAuth();
   
+  useEffect(() => {
+    if (!user) {
+      toast.error('Please log in to edit students');
+      navigate('/login');
+      return;
+    }
+    
+    // Ensure students are loaded
+    loadStudents();
+  }, [user, navigate, loadStudents]);
+  
   if (!user) {
-    navigate('/login');
     return null;
   }
   

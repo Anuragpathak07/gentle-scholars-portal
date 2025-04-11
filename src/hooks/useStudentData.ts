@@ -110,19 +110,27 @@ export function useStudentData() {
   // Load students from localStorage on mount or when user changes
   useEffect(() => {
     if (!user) return;
+    loadStudents();
+  }, [user]);
+
+  // Function to explicitly load students from storage
+  const loadStudents = () => {
+    if (!user) return;
     
     // Check if this is the first time for this user and initialize with mock data if needed
     const shouldUseMockData = !hasStorageItem(STUDENTS_STORAGE_KEY, user.id);
     const initialData = shouldUseMockData ? MOCK_STUDENTS : [];
     
     const storedStudents = getStorageItem<StudentDetail[]>(STUDENTS_STORAGE_KEY, user.id, initialData);
+    console.log('Loaded students from storage:', storedStudents);
     setStudents(storedStudents);
-  }, [user]);
+  };
 
   // Save students to localStorage whenever they change
   useEffect(() => {
     if (!user || students.length === 0) return;
     
+    console.log('Saving students to storage:', students);
     setStorageItem(STUDENTS_STORAGE_KEY, user.id, students);
   }, [students, user]);
 
@@ -141,11 +149,9 @@ export function useStudentData() {
       id: Date.now().toString(), // Generate a unique ID
     };
     
-    setStudents(prevStudents => {
-      const updatedStudents = [...prevStudents, newStudent];
-      setStorageItem(STUDENTS_STORAGE_KEY, user.id, updatedStudents);
-      return updatedStudents;
-    });
+    const updatedStudents = [...students, newStudent];
+    setStudents(updatedStudents);
+    setStorageItem(STUDENTS_STORAGE_KEY, user.id, updatedStudents);
     
     return newStudent;
   };
@@ -155,13 +161,12 @@ export function useStudentData() {
     if (!user) return;
     
     console.log('Updating student:', id, studentData);
-    setStudents(prevStudents => {
-      const updatedStudents = prevStudents.map(student => 
-        student.id === id ? { ...student, ...studentData } : student
-      );
-      setStorageItem(STUDENTS_STORAGE_KEY, user.id, updatedStudents);
-      return updatedStudents;
-    });
+    const updatedStudents = students.map(student => 
+      student.id === id ? { ...student, ...studentData } : student
+    );
+    
+    setStudents(updatedStudents);
+    setStorageItem(STUDENTS_STORAGE_KEY, user.id, updatedStudents);
   };
 
   // Delete a student
@@ -169,15 +174,15 @@ export function useStudentData() {
     if (!user) return;
     
     console.log('Deleting student:', id);
-    setStudents(prevStudents => {
-      const updatedStudents = prevStudents.filter(student => student.id !== id);
-      setStorageItem(STUDENTS_STORAGE_KEY, user.id, updatedStudents);
-      return updatedStudents;
-    });
+    const updatedStudents = students.filter(student => student.id !== id);
+    
+    setStudents(updatedStudents);
+    setStorageItem(STUDENTS_STORAGE_KEY, user.id, updatedStudents);
   };
 
   return {
     students,
+    loadStudents,
     getStudentById,
     addStudent,
     updateStudent,

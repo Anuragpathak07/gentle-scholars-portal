@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,11 +13,21 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { useStudentData } from '@/hooks/useStudentData';
+import { useAuth } from '@/context/AuthContext';
 
 const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
-  const { students } = useStudentData();
+  const { students, loadStudents } = useStudentData();
+  const { user } = useAuth();
+  
+  // Ensure students are loaded when the dashboard mounts
+  useEffect(() => {
+    if (user) {
+      loadStudents();
+      console.log("Dashboard loaded with students:", students);
+    }
+  }, [user]);
   
   // Filter students based on search term and level filter
   const filteredStudents = students.filter(student => {

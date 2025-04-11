@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -84,7 +83,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addStudent, updateStudent } = useStudentData();
+  const { addStudent, updateStudent, loadStudents } = useStudentData();
   const { teachers, addTeacher } = useTeacherData();
   const [newTeacherName, setNewTeacherName] = useState('');
   const [isAddingTeacher, setIsAddingTeacher] = useState(false);
@@ -193,6 +192,9 @@ const StudentForm: React.FC<StudentFormProps> = ({
           return;
         }
       }
+      
+      // Ensure data is loaded after changes
+      loadStudents();
       
       if (onSaved) {
         onSaved();
@@ -462,6 +464,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
                 multiple={false}
                 value={disabilityIdCard ? [disabilityIdCard] : []}
                 onChange={(files) => setDisabilityIdCard(files[0])}
+                label="Choose ID Card"
               />
             </div>
           )}
@@ -599,6 +602,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               value={certificates}
               onChange={setCertificates}
               maxFiles={5}
+              label="Choose Certificates"
             />
           </div>
           
@@ -611,6 +615,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
                 onChange={setDocuments}
                 maxFiles={5}
                 acceptedFileTypes=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                label="Choose Documents"
               />
             </div>
           )}
