@@ -62,13 +62,6 @@ const LoginForm: React.FC = () => {
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-center text-sm text-muted-foreground">
-        <div>
-          <p>Demo credentials:</p>
-          <p>Admin: admin@school.com / password</p>
-          <p>Teacher: teacher@school.com / password</p>
-        </div>
-      </CardFooter>
     </Card>
   );
 };
