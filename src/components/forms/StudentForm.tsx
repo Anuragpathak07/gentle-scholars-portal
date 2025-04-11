@@ -94,8 +94,9 @@ const StudentForm: React.FC<StudentFormProps> = ({
   const [disabilityIdCard, setDisabilityIdCard] = useState<{id: string, name: string, type: string, date: string, data?: string} | undefined>(
     initialData.disabilityIdCard
   );
-
- 
+  const [documents, setDocuments] = useState<Array<{id: string, name: string, type: string, date: string, data?: string}>>(
+    initialData.documents || []
+  );
 
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
@@ -108,7 +109,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
       residenceType: initialData.residenceType || 'Permanent',
       previousSchool: initialData.previousSchool || '',
       parentGuardianStatus: initialData.parentGuardianStatus || 'Both Parents',
-      teacherAssigned: initialData.teacherAssigned || (teachers[0]?.id || ''),
+      teacherAssigned: initialData.teacherAssigned || (teachers.length > 0 ? teachers[0]?.id : ''),
       disabilityType: initialData.disabilityType || '',
       disabilityLevel: initialData.disabilityLevel || 'Mild',
       disabilityPercentage: initialData.disabilityPercentage || undefined,
@@ -133,10 +134,12 @@ const StudentForm: React.FC<StudentFormProps> = ({
   const handleAddTeacher = () => {
     if (newTeacherName.trim()) {
       const teacher = addTeacher(newTeacherName.trim());
-      form.setValue('teacherAssigned', teacher.id);
-      setNewTeacherName('');
-      setIsAddingTeacher(false);
-      toast.success(`Teacher "${teacher.name}" has been added`);
+      if (teacher) {
+        form.setValue('teacherAssigned', teacher.id);
+        setNewTeacherName('');
+        setIsAddingTeacher(false);
+        toast.success(`Teacher "${teacher.name}" has been added`);
+      }
     }
   };
 
@@ -174,17 +177,28 @@ const StudentForm: React.FC<StudentFormProps> = ({
         // File uploads
         certificates,
         disabilityIdCard: data.hasDisabilityIdCard ? disabilityIdCard : undefined,
+        documents,
       };
       
       if (isEditing && id) {
-        await updateStudent(id, studentData);
+        updateStudent(id, studentData);
         toast.success('Student updated successfully!');
       } else {
-        await addStudent(studentData);
-        toast.success('Student added successfully!');
+        const newStudent = addStudent(studentData);
+        if (newStudent) {
+          toast.success('Student added successfully!');
+        } else {
+          toast.error('Failed to add student');
+          setIsSubmitting(false);
+          return;
+        }
       }
       
-      onSaved ? onSaved() : navigate('/dashboard');
+      if (onSaved) {
+        onSaved();
+      } else {
+        navigate('/dashboard');
+      }
       
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -587,6 +601,19 @@ const StudentForm: React.FC<StudentFormProps> = ({
               maxFiles={5}
             />
           </div>
+          
+          {isAdmin && (
+            <div className="mt-6 mb-4">
+              <p className="text-sm text-muted-foreground mb-2">Upload other important documents</p>
+              <FileUpload 
+                multiple={true}
+                value={documents}
+                onChange={setDocuments}
+                maxFiles={5}
+                acceptedFileTypes=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              />
+            </div>
+          )}
           
           <FormField
             control={form.control}

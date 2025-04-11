@@ -5,11 +5,18 @@ import StudentForm from '@/components/forms/StudentForm';
 import { useStudentData } from '@/hooks/useStudentData';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const EditStudent: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getStudentById } = useStudentData();
+  const { user } = useAuth();
+  
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
   
   const student = getStudentById(id || '');
   

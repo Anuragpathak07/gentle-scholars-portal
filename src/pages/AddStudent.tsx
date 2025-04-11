@@ -4,9 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import StudentForm from '@/components/forms/StudentForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const AddStudent: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
+
+  const handleStudentSaved = () => {
+    // Navigate to the dashboard after successfully saving
+    navigate('/dashboard');
+  };
 
   return (
     <div className="container mx-auto p-4 max-w-4xl fade-in">
@@ -21,7 +33,7 @@ const AddStudent: React.FC = () => {
         </Button>
       </div>
       <h1 className="text-2xl font-bold mb-6">Add New Student</h1>
-      <StudentForm />
+      <StudentForm onSaved={handleStudentSaved} />
     </div>
   );
 };
