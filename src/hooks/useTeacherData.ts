@@ -8,14 +8,6 @@ export interface Teacher {
   name: string;
 }
 
-// Initial sample data
-const INITIAL_TEACHERS: Teacher[] = [
-  { id: '1', name: 'Ms. Johnson' },
-  { id: '2', name: 'Mr. Smith' },
-  { id: '3', name: 'Mrs. Williams' },
-  { id: '4', name: 'Dr. Garcia' },
-];
-
 export function useTeacherData() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const { user } = useAuth();
@@ -24,7 +16,7 @@ export function useTeacherData() {
   useEffect(() => {
     if (!user) return;
     
-    const storedTeachers = getStorageItem<Teacher[]>('teachers', user.id, INITIAL_TEACHERS);
+    const storedTeachers = getStorageItem<Teacher[]>('teachers', user.id, []);
     setTeachers(storedTeachers);
   }, [user]);
 

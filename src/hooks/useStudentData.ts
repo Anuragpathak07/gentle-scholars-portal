@@ -91,13 +91,6 @@ export interface StudentDetail extends Student {
   isFamilySupportive?: boolean;
   hasPTSD?: boolean;
   hasSelfHarmHistory?: boolean;
-  documents?: Array<{
-    id: string;
-    name: string;
-    type: string;
-    date: string;
-    data?: string; // Base64 encoded file data
-  }>;
 }
 
 // Storage key for students data

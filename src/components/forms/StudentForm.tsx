@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -93,9 +94,6 @@ const StudentForm: React.FC<StudentFormProps> = ({
   const [disabilityIdCard, setDisabilityIdCard] = useState<{id: string, name: string, type: string, date: string, data?: string} | undefined>(
     initialData.disabilityIdCard
   );
-  const [documents, setDocuments] = useState<Array<{id: string, name: string, type: string, date: string, data?: string}>>(
-    initialData.documents || []
-  );
 
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
@@ -175,8 +173,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
         hasSelfHarmHistory: data.hasSelfHarmHistory,
         // File uploads
         certificates,
-        disabilityIdCard: data.hasDisabilityIdCard ? disabilityIdCard : undefined,
-        documents,
+        disabilityIdCard: data.hasDisabilityIdCard ? disabilityIdCard : undefined
       };
       
       if (isEditing && id) {
@@ -593,10 +590,10 @@ const StudentForm: React.FC<StudentFormProps> = ({
         </div>
         
         <div className="bg-primary/5 p-4 rounded-md mb-6">
-          <h2 className="text-lg font-semibold mb-4">Documents</h2>
+          <h2 className="text-lg font-semibold mb-4">Certificates</h2>
           
           <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-2">Upload certificates, medical reports, or other documents</p>
+            <p className="text-sm text-muted-foreground mb-2">Upload certificates or medical reports</p>
             <FileUpload 
               multiple={true}
               value={certificates}
@@ -605,20 +602,6 @@ const StudentForm: React.FC<StudentFormProps> = ({
               label="Choose Certificates"
             />
           </div>
-          
-          {isAdmin && (
-            <div className="mt-6 mb-4">
-              <p className="text-sm text-muted-foreground mb-2">Upload other important documents</p>
-              <FileUpload 
-                multiple={true}
-                value={documents}
-                onChange={setDocuments}
-                maxFiles={5}
-                acceptedFileTypes=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                label="Choose Documents"
-              />
-            </div>
-          )}
           
           <FormField
             control={form.control}
