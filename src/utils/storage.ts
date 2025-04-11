@@ -40,3 +40,16 @@ export function removeStorageItem(key: string, userId: string): void {
     console.error('Error removing storage item:', error);
   }
 }
+
+/**
+ * Check if a storage item exists
+ */
+export function hasStorageItem(key: string, userId: string): boolean {
+  try {
+    const userKey = `${key}_${userId}`;
+    return localStorage.getItem(userKey) !== null;
+  } catch (error) {
+    console.error('Error checking storage item:', error);
+    return false;
+  }
+}

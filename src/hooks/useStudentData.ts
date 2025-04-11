@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Student } from '@/components/dashboard/StudentCard';
 import { useAuth } from '@/context/AuthContext';
-import { getStorageItem, setStorageItem } from '@/utils/storage';
+import { getStorageItem, setStorageItem, hasStorageItem } from '@/utils/storage';
 
 // Mock data for initial load if no data in localStorage
 const MOCK_STUDENTS: Student[] = [
@@ -100,6 +100,9 @@ export interface StudentDetail extends Student {
   }>;
 }
 
+// Storage key for students data
+const STUDENTS_STORAGE_KEY = 'students';
+
 export function useStudentData() {
   const [students, setStudents] = useState<StudentDetail[]>([]);
   const { user } = useAuth();
@@ -108,7 +111,11 @@ export function useStudentData() {
   useEffect(() => {
     if (!user) return;
     
-    const storedStudents = getStorageItem<StudentDetail[]>('students', user.id, MOCK_STUDENTS);
+    // Check if this is the first time for this user and initialize with mock data if needed
+    const shouldUseMockData = !hasStorageItem(STUDENTS_STORAGE_KEY, user.id);
+    const initialData = shouldUseMockData ? MOCK_STUDENTS : [];
+    
+    const storedStudents = getStorageItem<StudentDetail[]>(STUDENTS_STORAGE_KEY, user.id, initialData);
     setStudents(storedStudents);
   }, [user]);
 
@@ -116,7 +123,7 @@ export function useStudentData() {
   useEffect(() => {
     if (!user || students.length === 0) return;
     
-    setStorageItem('students', user.id, students);
+    setStorageItem(STUDENTS_STORAGE_KEY, user.id, students);
   }, [students, user]);
 
   // Get a student by ID
@@ -124,7 +131,7 @@ export function useStudentData() {
     return students.find(student => student.id === id);
   };
 
-  // Add a new student
+  // Add a new student - returns the newly created student
   const addStudent = (studentData: Omit<StudentDetail, 'id'>) => {
     if (!user) return null;
     
@@ -136,7 +143,7 @@ export function useStudentData() {
     
     setStudents(prevStudents => {
       const updatedStudents = [...prevStudents, newStudent];
-      setStorageItem('students', user.id, updatedStudents);
+      setStorageItem(STUDENTS_STORAGE_KEY, user.id, updatedStudents);
       return updatedStudents;
     });
     
@@ -152,7 +159,7 @@ export function useStudentData() {
       const updatedStudents = prevStudents.map(student => 
         student.id === id ? { ...student, ...studentData } : student
       );
-      setStorageItem('students', user.id, updatedStudents);
+      setStorageItem(STUDENTS_STORAGE_KEY, user.id, updatedStudents);
       return updatedStudents;
     });
   };
@@ -164,7 +171,7 @@ export function useStudentData() {
     console.log('Deleting student:', id);
     setStudents(prevStudents => {
       const updatedStudents = prevStudents.filter(student => student.id !== id);
-      setStorageItem('students', user.id, updatedStudents);
+      setStorageItem(STUDENTS_STORAGE_KEY, user.id, updatedStudents);
       return updatedStudents;
     });
   };

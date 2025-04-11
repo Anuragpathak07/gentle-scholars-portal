@@ -1,7 +1,8 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getStorageItem, setStorageItem, removeStorageItem } from '@/utils/storage';
 
 type User = {
   id: string;
@@ -29,19 +30,40 @@ export const useAuth = () => {
   return context;
 };
 
+// Local storage key for user data
+const USER_STORAGE_KEY = 'user';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start as loading
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Check if user is already logged in
+  // Check if user is already logged in on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+    
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } catch (err) {
+        console.error('Error parsing stored user data:', err);
+        localStorage.removeItem(USER_STORAGE_KEY);
+      }
     }
+    
+    // Authentication check complete
+    setIsLoading(false);
   }, []);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!isLoading && !user && location.pathname !== '/login') {
+      navigate('/login');
+    }
+  }, [user, isLoading, navigate, location.pathname]);
 
   // Sign up a new user
   const signup = async (name: string, email: string, password: string) => {
@@ -84,10 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       
       setUser(loggedInUser);
-      localStorage.setItem('user', JSON.stringify(loggedInUser));
-      
-      // Initialize empty students array for this user
-      localStorage.setItem(`students_${newUser.id}`, JSON.stringify([]));
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(loggedInUser));
       
       toast.success('Account created successfully');
       navigate('/dashboard');
@@ -122,7 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: foundUser.role as 'teacher' | 'admin'
           };
           setUser(loggedInUser);
-          localStorage.setItem('user', JSON.stringify(loggedInUser));
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(loggedInUser));
           navigate('/dashboard');
           return;
         }
@@ -137,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: 'admin' as const
         };
         setUser(newUser);
-        localStorage.setItem('user', JSON.stringify(newUser));
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
         navigate('/dashboard');
       } else if (email === 'teacher@school.com' && password === 'password') {
         const newUser = {
@@ -147,7 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: 'teacher' as const
         };
         setUser(newUser);
-        localStorage.setItem('user', JSON.stringify(newUser));
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
         navigate('/dashboard');
       } else {
         setError('Invalid email or password');
@@ -162,7 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    localStorage.removeItem(USER_STORAGE_KEY);
     navigate('/login');
   };
 
